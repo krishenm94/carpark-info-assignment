@@ -1,11 +1,13 @@
 import express from "express";
 import swaggerUi from "swagger-ui-express";
+import { schedule } from "node-cron";
 
 import { swaggerDocs } from "./swagger";
 import { db, bulkInsertTransaction } from "./db";
 
 const port = 3000;
-const csvDataFilepath = "./hdb-carpark-information-20220824010400.csv";
+const dataCsvPath = "./hdb-carpark-information-20220824010400.csv";
+const deltaCsvPath = "./delta.csv";
 const app = express();
 // Enable json parsing
 app.use(express.json());
@@ -239,6 +241,13 @@ app.post("/parking/favorite", async (req, res) => {
 });
 
 app.listen(port, async () => {
-  await bulkInsertTransaction(csvDataFilepath);
-  return console.log(`Express is listening at http://localhost:${port}`);
+  await bulkInsertTransaction(dataCsvPath);
+  return console.log(`INFO: Express is listening at http://localhost:${port}`);
+});
+
+schedule("0 0 9 * * *", async () => {
+  console.log(
+    `INFO: Running scheduled delta sync. Source file: ${deltaCsvPath}`
+  );
+  await bulkInsertTransaction(deltaCsvPath);
 });

@@ -1,8 +1,14 @@
 import express from "express";
+import swaggerUi from "swagger-ui-express";
+
+import { swaggerDocs } from "./swagger";
 import { db } from "./db";
 
 const app = express();
+// Enable json parsing
 app.use(express.json());
+// Add swagger doc UI
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 const port = 3000;
 
 const getCallBack = (res: any) => {
@@ -31,12 +37,40 @@ const postCallBack = (res: any) => {
   };
 };
 
-app.get("/", (req, res) => {
-  res.send("Car Park Assignment, from Handshakes, by Krishen Mohan");
-});
-
+/**
+ * @swagger
+ * /parking:
+ *   get:
+ *     summary: Get car parks
+ *     description: Get car parks with a combination of optional filters, free, night & gantry height.
+ *     parameters:
+ *       - in: query
+ *         name: free
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: If value is "true", return free car parks
+ *       - in: query
+ *         name: night
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: If value is "true", return car parks open at night
+ *       - in: query
+ *         name: height
+ *         schema:
+ *           type: float
+ *         required: false
+ *         description: Filters for car parks with gantry height larger than this supplied value
+ *     responses:
+ *       '200':
+ *         description: A successful response
+ *       '400':
+ *         description: Invalid argument
+ *       '500':
+ *         description: Internal server error
+ */
 app.get("/parking", (req, res) => {
-  console.log(req.query);
   let sqlquery = `SELECT * FROM car_parks`;
   if (Object.keys(req.query).length === 0) {
     db.all(sqlquery, getCallBack(res));
@@ -74,20 +108,72 @@ app.get("/parking", (req, res) => {
   db.all(sqlquery, params, getCallBack(res));
 });
 
-app.get("/parking/favorite", (req, res) => {
-  if (!req.query.email) {
+/**
+ * @swagger
+ * /parking/favorite/{email}:
+ *   get:
+ *     summary: Get user's car parks favourites
+ *     description: Get the user's favourite car parks stored in database
+ *     parameters:
+ *       - in: path
+ *         name: email
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The user's email
+ *     responses:
+ *       '200':
+ *         description: A successful response
+ *       '400':
+ *         description: Invalid argument
+ *       '500':
+ *         description: Internal server error
+ */
+app.get("/parking/favorite/:email", (req, res) => {
+  if (!req.params.email) {
     res.status(400);
     res.send("Invalid argument. Please supply user email.");
   }
 
-  const params: string[] = [req.query.email as string];
+  console.log(req.params.email);
 
-  const sqlquery = `SELECT car_parks.* FROM car_parks JOIN user_car_parks ON user_car_parks.car_park_no == car_parks.car_park_no WHERE user_car_parks.email == ?`;
+  const params: string[] = [req.params.email as string];
+
+  const sqlquery = `SELECT car_parks.* FROM car_parks JOIN user_car_parks ON user_car_parks.car_park_no == car_parks.car_park_no WHERE user_car_parks.email_address == ?`;
   db.all(sqlquery, params, getCallBack(res));
 });
 
+/**
+ * @swagger
+ * /parking/favorite:
+ *   post:
+ *     summary: Add car parks to user's favourites
+ *     description: Add car parks to user's favourites. If car park doesn't exist or user has already added the car park, then the request is not processed.
+ *     consumes:
+ *     requestBody:
+ *       description: The user's email and new favorite car park no
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - carParkNo
+ *             properties:
+ *               email:
+ *                 type: string
+ *               carParkNo:
+ *                 type: string
+ *     responses:
+ *       '204':
+ *         description: A successful response
+ *       '400':
+ *         description: Invalid argument
+ *       '500':
+ *         description: Internal server error
+ */
 app.post("/parking/favorite", async (req, res) => {
-  console.log(req.body);
   const body = req.body;
   if (!body.email || !body.carParkNo) {
     res.status(400);
@@ -95,6 +181,7 @@ app.post("/parking/favorite", async (req, res) => {
     return;
   }
 
+  // If the car park does not exist in out database, we should return early without processing the request
   let carParkExists: boolean = await new Promise((resolve, reject) => {
     db.all(
       `SELECT car_park_no FROM car_parks WHERE car_park_no = ?`,
@@ -120,6 +207,7 @@ app.post("/parking/favorite", async (req, res) => {
 
   const params: string[] = [body.email as string, body.carParkNo as string];
 
+  // If the favorite is already added, we should return early without processing the request
   let favoriteAdded: boolean = await new Promise((resolve, reject) => {
     db.all(
       `SELECT car_park_no FROM user_car_parks WHERE email_address = ? AND car_park_no = ?`,

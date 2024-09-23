@@ -15,7 +15,6 @@ export const db = new sqlite3.Database(filepath, (err) => {
 // fs.createReadStream("./hdb-carpark-information-20220824010400.csv")
 //   .pipe(parse({ delimiter: ",", from_line: 2 }))
 //   .on("data", function (row: string[]) {
-//     // console.log(row);
 //     db.serialize(function () {
 //       db.run(
 //         `INSERT INTO car_parks(car_park_no, address, x_coord, y_coord, car_park_type, type_of_parking_system, short_term_parking, free_parking, night_parking, car_park_decks, gantry_height, car_park_basement) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,

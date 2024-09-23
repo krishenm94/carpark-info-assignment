@@ -2,14 +2,15 @@ import express from "express";
 import swaggerUi from "swagger-ui-express";
 
 import { swaggerDocs } from "./swagger";
-import { db } from "./db";
+import { db, bulkInsertTransaction } from "./db";
 
+const port = 3000;
+const csvDataFilepath = "./hdb-carpark-information-20220824010400.csv";
 const app = express();
 // Enable json parsing
 app.use(express.json());
 // Add swagger doc UI
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
-const port = 3000;
 
 const getCallBack = (res: any) => {
   return (err: any, result: any) => {
@@ -66,7 +67,7 @@ const postCallBack = (res: any) => {
  *       '200':
  *         description: A successful response
  *       '400':
- *         description: Invalid argument
+ *         description: Bad request
  *       '500':
  *         description: Internal server error
  */
@@ -125,14 +126,14 @@ app.get("/parking", (req, res) => {
  *       '200':
  *         description: A successful response
  *       '400':
- *         description: Invalid argument
+ *         description: Bad request
  *       '500':
  *         description: Internal server error
  */
 app.get("/parking/favorite/:email", (req, res) => {
   if (!req.params.email) {
     res.status(400);
-    res.send("Invalid argument. Please supply user email.");
+    res.send("Bad request. Please supply user email.");
   }
 
   console.log(req.params.email);
@@ -169,7 +170,7 @@ app.get("/parking/favorite/:email", (req, res) => {
  *       '204':
  *         description: A successful response
  *       '400':
- *         description: Invalid argument
+ *         description: Bad request
  *       '500':
  *         description: Internal server error
  */
@@ -237,6 +238,7 @@ app.post("/parking/favorite", async (req, res) => {
   db.all(insertquery, params, postCallBack(res));
 });
 
-app.listen(port, () => {
+app.listen(port, async () => {
+  await bulkInsertTransaction(csvDataFilepath);
   return console.log(`Express is listening at http://localhost:${port}`);
 });

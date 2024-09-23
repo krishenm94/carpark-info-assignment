@@ -2,7 +2,7 @@ DROP TABLE IF EXISTS car_parks;
 DROP TABLE IF EXISTS user_car_parks;
 
 CREATE TABLE IF NOT EXISTS car_parks (
-    car_park_no TEXT NOT NULL,
+    car_park_no TEXT NOT NULL PRIMARY KEY DESC ,
     address TEXT NOT NULL,
     x_coord REAL NOT NULL,
     y_coord REAL NOT NULL,

@@ -16,3 +16,5 @@ There relevant API documentation can be found
 A simple ER diagram can be found here:
 
 <img src="er-diagram.png">
+
+The [scheduled data sync](https://github.com/krishenm94/carpark-info-assignment/blob/ad0e1103330c0047e0a744846ef76229fca1141c/src/app.ts#L248) points to a delta file name `delta.csv` by default and runs every 9am

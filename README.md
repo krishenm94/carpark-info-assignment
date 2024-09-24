@@ -14,7 +14,7 @@ To run the project, run `npm start`
 
 To visit the swagger UI, visit `http://localhost:3000/api-docs` in the browser.
 There relevant API documentation can be found
-The UI can be slow to load responses that are large though so to test the API that have large responses (GET /parking) please use a optimised HTTP client, like curl or Postman
+The UI can be slow to load responses that are large though so to test the API that have large responses, please use an optimised HTTP client, like curl or Postman
 
 A simple ER diagram can be found here:
 

@@ -111,17 +111,20 @@ app.get("/parking", (req, res) => {
     return;
   }
 
-  sqlquery = `${sqlquery} WHERE`;
   let argAdded = false;
   let params: string[] = [];
   if (req.query.night && (req.query.night as string) === "true") {
+    sqlquery = `${sqlquery} WHERE`;
     sqlquery = `${sqlquery} night_parking != "NO"`;
     argAdded = true;
   }
   if (req.query.free && (req.query.free as string) === "true") {
     if (argAdded) {
       sqlquery = `${sqlquery} AND`;
+    } else {
+      sqlquery = `${sqlquery} WHERE`;
     }
+
     sqlquery = `${sqlquery} free_parking != "NO"`;
     argAdded = true;
   }
@@ -134,6 +137,8 @@ app.get("/parking", (req, res) => {
     }
     if (argAdded) {
       sqlquery = `${sqlquery} AND`;
+    } else {
+      sqlquery = `${sqlquery} WHERE`;
     }
     sqlquery = `${sqlquery} gantry_height > ?`;
     params.push(req.query.height as string);

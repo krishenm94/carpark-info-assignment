@@ -40,6 +40,13 @@ const postCallBack = (res: any) => {
   };
 };
 
+const appendFilterSQLQuery = (query: string, argAdded: boolean) => {
+  if (argAdded) {
+    return `${query} AND`;
+  }
+  return `${query} WHERE`;
+};
+
 /**
  * @swagger
  * /parking:
@@ -85,7 +92,6 @@ const postCallBack = (res: any) => {
  *       '500':
  *         description: Internal server error
  */
-
 app.get("/parking", (req, res) => {
   console.log(req.query);
   if (
@@ -114,17 +120,12 @@ app.get("/parking", (req, res) => {
   let argAdded = false;
   let params: string[] = [];
   if (req.query.night && (req.query.night as string) === "true") {
-    sqlquery = `${sqlquery} WHERE`;
+    sqlquery = appendFilterSQLQuery(sqlquery, argAdded);
     sqlquery = `${sqlquery} night_parking != "NO"`;
     argAdded = true;
   }
   if (req.query.free && (req.query.free as string) === "true") {
-    if (argAdded) {
-      sqlquery = `${sqlquery} AND`;
-    } else {
-      sqlquery = `${sqlquery} WHERE`;
-    }
-
+    sqlquery = appendFilterSQLQuery(sqlquery, argAdded);
     sqlquery = `${sqlquery} free_parking != "NO"`;
     argAdded = true;
   }
@@ -135,11 +136,7 @@ app.get("/parking", (req, res) => {
       res.send("Invalid height value. Please use a number.");
       return;
     }
-    if (argAdded) {
-      sqlquery = `${sqlquery} AND`;
-    } else {
-      sqlquery = `${sqlquery} WHERE`;
-    }
+    sqlquery = appendFilterSQLQuery(sqlquery, argAdded);
     sqlquery = `${sqlquery} gantry_height > ?`;
     params.push(req.query.height as string);
   }

@@ -48,6 +48,18 @@ const postCallBack = (res: any) => {
  *     description: Get car parks with a combination of optional filters, free, night & gantry height.
  *     parameters:
  *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Pagination offset
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Pagination limit
+ *       - in: query
  *         name: free
  *         schema:
  *           type: string
@@ -73,10 +85,29 @@ const postCallBack = (res: any) => {
  *       '500':
  *         description: Internal server error
  */
+
 app.get("/parking", (req, res) => {
+  console.log(req.query);
+  if (
+    !req.query.limit ||
+    isNaN(parseInt(req.query.limit as string)) ||
+    !req.query.offset ||
+    isNaN(parseInt(req.query.offset as string))
+  ) {
+    res.status(400);
+    res.send(
+      "Pagination parameters invalid. Please supply integer limit and offset"
+    );
+    return;
+  }
+
   let sqlquery = `SELECT * FROM car_parks`;
-  if (Object.keys(req.query).length === 0) {
-    db.all(sqlquery, getCallBack(res));
+  if (Object.keys(req.query).length === 2) {
+    db.all(
+      `${sqlquery} LIMIT ? OFFSET ?`,
+      [req.query.limit as string, req.query.offset as string],
+      getCallBack(res)
+    );
     return;
   }
 
@@ -108,6 +139,10 @@ app.get("/parking", (req, res) => {
     params.push(req.query.height as string);
   }
 
+  params.push(req.query.limit as string);
+  params.push(req.query.offset as string);
+
+  sqlquery = `${sqlquery} LIMIT ? OFFSET ?`;
   db.all(sqlquery, params, getCallBack(res));
 });
 

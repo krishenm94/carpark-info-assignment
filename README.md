@@ -6,7 +6,9 @@ Here, a quick overview of the project will be documented
 
 This project is a nodejs project using express for routing and sqlite as an in-memory database
 
-Please refer the `/src` folder for the source filters
+Please refer the `/src` folder for the source files
+
+To initialise the project run `npm install` and then `npx tsc`
 
 To run the project, run `npm start`
 
